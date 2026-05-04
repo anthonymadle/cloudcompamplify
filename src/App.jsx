@@ -125,7 +125,7 @@ export default function App() {
             <div className="hero-chips">
               <div className="meta-pill muted">{safeData.estimateNote}</div>
               {safeData.lastUpdated && (
-                <div className="meta-pill muted">Data as of {safeData.lastUpdated}</div>
+                <div className="meta-pill muted">Data as of {safeData.lastUpdated} GMT</div>
               )}
             </div>
           </div>
