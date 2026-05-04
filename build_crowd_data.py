@@ -273,8 +273,11 @@ def main():
     trend_direction = build_trend_direction(timeline, current_idx)
     next_lighter_window = build_next_lighter_window(timeline, current_idx, selected_value)
 
+    latest_date = pd.to_datetime(slot_df["date"].max())
+    last_updated = f"{latest_date.month}/{latest_date.day}/{str(latest_date.year)[2:]}"
+
     payload = {
-        "lastUpdated": "",
+        "lastUpdated": last_updated,
         "estimateNote": "Each check-in is treated as a 90-minute visit estimate.",
         "selectedTime": selected_time,
         "selectedValue": selected_value,
