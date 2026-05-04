@@ -1,0 +1,361 @@
+{
+  "lastUpdated": "",
+  "estimateNote": "Each check-in is treated as a 90-minute visit estimate.",
+  "selectedTime": "10:00 PM",
+  "selectedValue": 186,
+  "crowdStatus": "Moderate",
+  "trendDirection": "Cooling Off",
+  "dailyPeak": 307,
+  "percentOfPeak": 61,
+  "bestTimes": [
+    "2:00 AM",
+    "2:30 AM",
+    "3:00 AM"
+  ],
+  "worstTimes": [
+    "6:30 PM",
+    "7:00 PM",
+    "7:30 PM"
+  ],
+  "nextLighterWindow": "10:30 PM",
+  "timeline": [
+    {
+      "time": "12:00 AM",
+      "value": 74
+    },
+    {
+      "time": "12:30 AM",
+      "value": 55
+    },
+    {
+      "time": "1:00 AM",
+      "value": 41
+    },
+    {
+      "time": "1:30 AM",
+      "value": 32
+    },
+    {
+      "time": "2:00 AM",
+      "value": 26
+    },
+    {
+      "time": "2:30 AM",
+      "value": 24
+    },
+    {
+      "time": "3:00 AM",
+      "value": 28
+    },
+    {
+      "time": "3:30 AM",
+      "value": 36
+    },
+    {
+      "time": "4:00 AM",
+      "value": 52
+    },
+    {
+      "time": "4:30 AM",
+      "value": 82
+    },
+    {
+      "time": "5:00 AM",
+      "value": 118
+    },
+    {
+      "time": "5:30 AM",
+      "value": 148
+    },
+    {
+      "time": "6:00 AM",
+      "value": 173
+    },
+    {
+      "time": "6:30 AM",
+      "value": 178
+    },
+    {
+      "time": "7:00 AM",
+      "value": 177
+    },
+    {
+      "time": "7:30 AM",
+      "value": 181
+    },
+    {
+      "time": "8:00 AM",
+      "value": 185
+    },
+    {
+      "time": "8:30 AM",
+      "value": 206
+    },
+    {
+      "time": "9:00 AM",
+      "value": 232
+    },
+    {
+      "time": "9:30 AM",
+      "value": 240
+    },
+    {
+      "time": "10:00 AM",
+      "value": 248
+    },
+    {
+      "time": "10:30 AM",
+      "value": 242
+    },
+    {
+      "time": "11:00 AM",
+      "value": 228
+    },
+    {
+      "time": "11:30 AM",
+      "value": 230
+    },
+    {
+      "time": "12:00 PM",
+      "value": 229
+    },
+    {
+      "time": "12:30 PM",
+      "value": 228
+    },
+    {
+      "time": "1:00 PM",
+      "value": 227
+    },
+    {
+      "time": "1:30 PM",
+      "value": 221
+    },
+    {
+      "time": "2:00 PM",
+      "value": 213
+    },
+    {
+      "time": "2:30 PM",
+      "value": 206
+    },
+    {
+      "time": "3:00 PM",
+      "value": 203
+    },
+    {
+      "time": "3:30 PM",
+      "value": 204
+    },
+    {
+      "time": "4:00 PM",
+      "value": 213
+    },
+    {
+      "time": "4:30 PM",
+      "value": 230
+    },
+    {
+      "time": "5:00 PM",
+      "value": 247
+    },
+    {
+      "time": "5:30 PM",
+      "value": 267
+    },
+    {
+      "time": "6:00 PM",
+      "value": 290
+    },
+    {
+      "time": "6:30 PM",
+      "value": 297
+    },
+    {
+      "time": "7:00 PM",
+      "value": 307
+    },
+    {
+      "time": "7:30 PM",
+      "value": 297
+    },
+    {
+      "time": "8:00 PM",
+      "value": 279
+    },
+    {
+      "time": "8:30 PM",
+      "value": 264
+    },
+    {
+      "time": "9:00 PM",
+      "value": 236
+    },
+    {
+      "time": "9:30 PM",
+      "value": 214
+    },
+    {
+      "time": "10:00 PM",
+      "value": 186
+    },
+    {
+      "time": "10:30 PM",
+      "value": 156
+    },
+    {
+      "time": "11:00 PM",
+      "value": 126
+    },
+    {
+      "time": "11:30 PM",
+      "value": 98
+    }
+  ],
+  "heatmapHours": [
+    "12A",
+    "2A",
+    "4A",
+    "6A",
+    "8A",
+    "10A",
+    "12P",
+    "2P",
+    "4P",
+    "6P",
+    "8P",
+    "10P"
+  ],
+  "weeklyPattern": [
+    {
+      "day": "Mon",
+      "values": [
+        41,
+        20,
+        57,
+        192,
+        183,
+        236,
+        230,
+        216,
+        245,
+        381,
+        369,
+        238
+      ]
+    },
+    {
+      "day": "Tue",
+      "values": [
+        89,
+        29,
+        73,
+        254,
+        194,
+        249,
+        222,
+        214,
+        253,
+        393,
+        410,
+        252
+      ]
+    },
+    {
+      "day": "Wed",
+      "values": [
+        95,
+        32,
+        72,
+        239,
+        189,
+        246,
+        215,
+        210,
+        226,
+        362,
+        353,
+        242
+      ]
+    },
+    {
+      "day": "Thu",
+      "values": [
+        94,
+        29,
+        66,
+        211,
+        182,
+        238,
+        195,
+        193,
+        205,
+        324,
+        319,
+        215
+      ]
+    },
+    {
+      "day": "Fri",
+      "values": [
+        84,
+        28,
+        56,
+        190,
+        191,
+        229,
+        218,
+        206,
+        214,
+        287,
+        250,
+        170
+      ]
+    },
+    {
+      "day": "Sat",
+      "values": [
+        76,
+        28,
+        25,
+        87,
+        192,
+        299,
+        281,
+        253,
+        190,
+        152,
+        132,
+        98
+      ]
+    },
+    {
+      "day": "Sun",
+      "values": [
+        43,
+        18,
+        17,
+        43,
+        166,
+        238,
+        242,
+        198,
+        159,
+        129,
+        121,
+        85
+      ]
+    }
+  ],
+  "weekSnapshot": {
+    "busiestDay": "Tuesday",
+    "quietestDay": "Sunday",
+    "peakHalfHour": "7:00 PM",
+    "bestOverallWindow": "2:30 AM"
+  },
+  "dailyCheckinStats": {
+    "avgDailyCheckins": 2211,
+    "maxDailyCheckins": 2931,
+    "busiestCheckinDay": "Mar 24, 2026"
+  }
+}
