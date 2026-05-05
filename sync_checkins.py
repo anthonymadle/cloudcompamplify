@@ -51,18 +51,26 @@ def get_last_sync_datetime(conn) -> datetime:
 def fetch_page(start_dt: datetime, end_dt: datetime, page: int) -> dict:
     ts_range = f"{start_dt.strftime('%Y-%m-%d %H:%M:%S')},{end_dt.strftime('%Y-%m-%d %H:%M:%S')}"
     params = {
-        "page":                 page,
-        "size":                 PAGE_SIZE,
+        "page":                  page,
+        "size":                  PAGE_SIZE,
         "checkInTimestampRange": ts_range,
     }
-    resp = requests.get(
-        f"{BASE_URL}/{CLUB_ID}/clubs/checkins/details",
-        headers=HEADERS,
-        params=params,
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return resp.json()
+    for attempt in range(1, 4):
+        try:
+            resp = requests.get(
+                f"{BASE_URL}/{CLUB_ID}/clubs/checkins/details",
+                headers=HEADERS,
+                params=params,
+                timeout=30,
+            )
+            resp.raise_for_status()
+            return resp.json()
+        except (requests.ConnectionError, requests.Timeout) as e:
+            if attempt == 3:
+                raise
+            wait = attempt * 5
+            print(f"\n  Connection error (attempt {attempt}/3), retrying in {wait}s: {e}")
+            time.sleep(wait)
 
 
 def map_checkin(raw: dict):
@@ -86,72 +94,121 @@ def map_checkin(raw: dict):
     return (agreement_number, member_name, checkin_datetime, gender)
 
 
-def insert_checkins(conn, records: list) -> int:
-    """Insert only records not already in the DB (by memberId + timestamp)."""
-    cur = conn.cursor()
-    psycopg2.extras.execute_values(
-        cur,
-        """
-        INSERT INTO check_ins (agreement_number, member_name, checkin_datetime, gender)
-        SELECT v.agreement_number, v.member_name, v.checkin_datetime::timestamp, v.gender
-        FROM (VALUES %s) AS v(agreement_number, member_name, checkin_datetime, gender)
-        WHERE NOT EXISTS (
-            SELECT 1 FROM check_ins c
-            WHERE c.agreement_number = v.agreement_number
-              AND c.checkin_datetime = v.checkin_datetime::timestamp
-        )
-        """,
-        records,
-    )
-    inserted = cur.rowcount
-    conn.commit()
-    cur.close()
-    return inserted
+def reconnect() -> psycopg2.extensions.connection:
+    """Open a fresh DB connection using DB_CONFIG."""
+    return psycopg2.connect(**DB_CONFIG)
 
 
-def main():
-    conn = psycopg2.connect(**DB_CONFIG)
+def insert_checkins(conn, records: list) -> tuple:
+    """Insert only records not already in the DB (by memberId + timestamp).
+    Returns (inserted_count, conn) — conn may be a new object if reconnection occurred."""
+    for attempt in range(1, 4):
+        try:
+            cur = conn.cursor()
+            psycopg2.extras.execute_values(
+                cur,
+                """
+                INSERT INTO check_ins (agreement_number, member_name, checkin_datetime, gender)
+                SELECT v.agreement_number, v.member_name, v.checkin_datetime::timestamp, v.gender
+                FROM (VALUES %s) AS v(agreement_number, member_name, checkin_datetime, gender)
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM check_ins c
+                    WHERE c.agreement_number = v.agreement_number
+                      AND c.checkin_datetime = v.checkin_datetime::timestamp
+                )
+                """,
+                records,
+            )
+            inserted = cur.rowcount
+            conn.commit()
+            cur.close()
+            return inserted, conn
+        except psycopg2.OperationalError as e:
+            if attempt == 3:
+                raise
+            print(f"\n  DB connection lost (attempt {attempt}/3), reconnecting: {e}")
+            time.sleep(5)
+            try:
+                conn.close()
+            except Exception:
+                pass
+            conn = reconnect()
 
-    last_sync = get_last_sync_datetime(conn)
-    start_dt  = last_sync - timedelta(hours=1)  # 1-hour overlap for late-arriving entries
-    end_dt    = datetime.now()
 
-    print(f"Syncing check-ins from {start_dt:%Y-%m-%d %H:%M} to {end_dt:%Y-%m-%d %H:%M} ...")
+def month_chunks(start_dt: datetime, end_dt: datetime):
+    """Yield (chunk_start, chunk_end) pairs one month at a time."""
+    current = start_dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    while current < end_dt:
+        # Last moment of the current month
+        if current.month == 12:
+            next_month = current.replace(year=current.year + 1, month=1)
+        else:
+            next_month = current.replace(month=current.month + 1)
+        chunk_end = min(next_month - timedelta(seconds=1), end_dt)
+        yield current, chunk_end
+        current = next_month
 
-    page = 1
+
+def sync_range(conn, start_dt: datetime, end_dt: datetime):
     total_fetched  = 0
     total_inserted = 0
 
-    while True:
-        print(f"  Page {page} ...", end=" ", flush=True)
+    for chunk_start, chunk_end in month_chunks(start_dt, end_dt):
+        print(f"\n  [{chunk_start:%Y-%m}] ", end="", flush=True)
+        page = 1
 
-        try:
-            data = fetch_page(start_dt, end_dt, page)
-        except requests.HTTPError as e:
-            print(f"\nAPI error: {e}\n{e.response.text[:300]}")
-            break
+        while True:
+            print(f"p{page} ", end="", flush=True)
 
-        checkins = data.get("checkins") or []
-        if not checkins:
-            print("no results.")
-            break
+            try:
+                data = fetch_page(chunk_start, chunk_end, page)
+            except requests.HTTPError as e:
+                print(f"\n  API error: {e}\n  {e.response.text[:200]}")
+                break
 
-        records = [r for raw in checkins if (r := map_checkin(raw)) is not None]
-        inserted = insert_checkins(conn, records) if records else 0
+            checkins = data.get("checkins") or []
+            if not checkins:
+                print("done.")
+                break
 
-        total_fetched  += len(checkins)
-        total_inserted += inserted
-        print(f"{len(checkins)} fetched, {inserted} new.")
+            records = [r for raw in checkins if (r := map_checkin(raw)) is not None]
+            if records:
+                inserted, conn = insert_checkins(conn, records)
+            else:
+                inserted = 0
 
-        next_page = data.get("status", {}).get("nextPage")
-        if not next_page:
-            break
+            total_fetched  += len(checkins)
+            total_inserted += inserted
 
-        page = int(next_page)
-        time.sleep(0.3)
+            next_page = data.get("status", {}).get("nextPage")
+            if not next_page:
+                print(f"done. ({inserted} new)")
+                break
+
+            page = int(next_page)
+            time.sleep(0.3)
+
+    return total_fetched, total_inserted, conn
+
+
+def main():
+    import sys
+    conn = psycopg2.connect(**DB_CONFIG)
+
+    if len(sys.argv) > 1:
+        start_dt = datetime.strptime(sys.argv[1], "%Y-%m-%d")
+        print(f"Using custom start date: {start_dt:%Y-%m-%d}")
+    else:
+        last_sync = get_last_sync_datetime(conn)
+        start_dt  = last_sync - timedelta(hours=1)
+
+    end_dt = datetime.now()
+    print(f"Syncing check-ins from {start_dt:%Y-%m-%d} to {end_dt:%Y-%m-%d} ...")
+
+    total_fetched, total_inserted, conn = sync_range(conn, start_dt, end_dt)
 
     conn.close()
-    print(f"\nSync complete — {total_fetched} fetched, {total_inserted} new rows inserted.")
+    print(f"\nSync complete — {total_fetched:,} fetched, {total_inserted:,} new rows inserted.")
 
 
 if __name__ == "__main__":
