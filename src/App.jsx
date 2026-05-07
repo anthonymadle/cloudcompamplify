@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 function heatClass(value) {
   if (value < 40) return "heat heat-1";
@@ -31,6 +31,15 @@ function toneClass(status) {
   };
 }
 
+function formatLastUpdated(value) {
+  if (!value) return "";
+  if (value.includes("T")) {
+    const d = new Date(value);
+    if (!isNaN(d)) return `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`;
+  }
+  return value;
+}
+
 function weekdayShort(name) {
   return {
     Monday: "Mon",
@@ -45,16 +54,24 @@ function weekdayShort(name) {
 
 export default function App() {
   const [crowdData, setCrowdData] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-   useEffect(() => {
-     fetch("https://2oogkxcse0.execute-api.us-east-1.amazonaws.com/crowd-data")
-       .then(res => res.json())
-       .then(data => setCrowdData(data));
-   }, []);
- 
+  useEffect(() => {
+    fetch("https://2oogkxcse0.execute-api.us-east-1.amazonaws.com/crowd-data")
+      .then(res => res.json())
+      .then(data => setCrowdData(data));
+  }, []);
+
+  useEffect(() => {
+    if (!crowdData) return;
+    const timeline = Array.isArray(crowdData?.timeline) ? crowdData.timeline : [];
+    const idx = timeline.findIndex(item => item.time === crowdData?.selectedTime);
+    setSelectedIndex(Math.max(0, idx));
+  }, [crowdData]);
+
   if (!crowdData) return <div style={{color:"white", padding:"40px"}}>Loading...</div>;
   const safeData = {
-    lastUpdated: crowdData?.lastUpdated || "",
+    lastUpdated: formatLastUpdated(crowdData?.lastUpdated),
     estimateNote:
       crowdData?.estimateNote ||
       "Each check-in is treated as a 90-minute visit estimate.",
@@ -75,13 +92,6 @@ export default function App() {
       bestOverallWindow: "-"
     }
   };
-
-  const initialIndex = Math.max(
-    0,
-    safeData.timeline.findIndex((item) => item.time === safeData.selectedTime)
-  );
-
-  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
 
   if (safeData.timeline.length === 0) {
     return (
