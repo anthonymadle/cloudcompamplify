@@ -55,11 +55,16 @@ function weekdayShort(name) {
 export default function App() {
   const [crowdData, setCrowdData] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetch("https://2oogkxcse0.execute-api.us-east-1.amazonaws.com/crowd-data")
-      .then(res => res.json())
-      .then(data => setCrowdData(data));
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => setCrowdData(data))
+      .catch(err => setError(err.message));
   }, []);
 
   useEffect(() => {
@@ -69,6 +74,7 @@ export default function App() {
     setSelectedIndex(Math.max(0, idx));
   }, [crowdData]);
 
+  if (error) return <div style={{color:"white", padding:"40px"}}>Error: {error}</div>;
   if (!crowdData) return <div style={{color:"white", padding:"40px"}}>Loading...</div>;
   const safeData = {
     lastUpdated: formatLastUpdated(crowdData?.lastUpdated),
