@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import crowdData from "./data/crowdData.json";
+import { useMemo, useState, useEffect } from "react";
 
 function heatClass(value) {
   if (value < 40) return "heat heat-1";
@@ -45,6 +44,15 @@ function weekdayShort(name) {
 }
 
 export default function App() {
+  const [crowdData, setCrowdData] = useState(null);
+
+   useEffect(() => {
+     fetch("https://2oogkxcse0.execute-api.us-east-1.amazonaws.com/crowd-data")
+       .then(res => res.json())
+       .then(data => setCrowdData(data));
+   }, []);
+ 
+  if (!crowdData) return <div style={{color:"white", padding:"40px"}}>Loading...</div>;
   const safeData = {
     lastUpdated: crowdData?.lastUpdated || "",
     estimateNote:
